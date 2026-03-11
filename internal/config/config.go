@@ -154,6 +154,9 @@ func (c *GatewayConfig) Validate() error {
 		if route.Path != "" && !strings.HasPrefix(route.Path, "/") {
 			errs = append(errs, fmt.Sprintf("route[%d]: path must start with /", i))
 		}
+		if strings.Contains(route.Path, "..") {
+			errs = append(errs, fmt.Sprintf("route[%d]: path must not contain '..' (path traversal)", i))
+		}
 		if len(route.Targets) == 0 {
 			errs = append(errs, fmt.Sprintf("route[%d]: at least one target required", i))
 		}

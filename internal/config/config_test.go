@@ -65,6 +65,17 @@ func TestGatewayConfig_Validate(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "path traversal rejected",
+			cfg: GatewayConfig{
+				Server:  ServerConfig{Port: 8080},
+				Logging: LoggingConfig{Level: "info", Format: "json"},
+				Routes: []RouteConfig{
+					{Path: "/api/../../admin", Targets: []TargetConfig{{URL: "http://localhost:3001"}}},
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "invalid log level",
 			cfg: GatewayConfig{
 				Server:  ServerConfig{Port: 8080},
