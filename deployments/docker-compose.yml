@@ -1,0 +1,80 @@
+services:
+  gateforge:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../configs/gateway.yaml:/etc/gateforge/gateway.yaml:ro
+    depends_on:
+      - upstream-1
+      - upstream-2
+      - upstream-3
+    restart: unless-stopped
+    networks:
+      - gateway
+
+  upstream-1:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile
+    entrypoint: ["upstream"]
+    command: ["--port", "3001", "--name", "upstream-1", "--error-rate", "0.05", "--min-latency", "10", "--max-latency", "100"]
+    ports:
+      - "3001:3001"
+    networks:
+      - gateway
+
+  upstream-2:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile
+    entrypoint: ["upstream"]
+    command: ["--port", "3002", "--name", "upstream-2", "--error-rate", "0.10", "--min-latency", "20", "--max-latency", "300"]
+    ports:
+      - "3002:3002"
+    networks:
+      - gateway
+
+  upstream-3:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile
+    entrypoint: ["upstream"]
+    command: ["--port", "3003", "--name", "upstream-3", "--error-rate", "0.02", "--min-latency", "5", "--max-latency", "50"]
+    ports:
+      - "3003:3003"
+    networks:
+      - gateway
+
+  prometheus:
+    image: prom/prometheus:v2.50.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - gateforge
+    networks:
+      - gateway
+
+  grafana:
+    image: grafana/grafana:10.3.3
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - gateway
+
+networks:
+  gateway:
+    driver: bridge
