@@ -42,7 +42,11 @@ func main() {
 		slog.Int("routes", len(cfg.Routes)),
 	)
 
-	handler := server.BuildRouter(cfg, logger)
+	// Context for background goroutines (health checkers)
+	appCtx, appCancel := context.WithCancel(context.Background())
+	defer appCancel()
+
+	handler := server.BuildRouter(appCtx, cfg, logger)
 
 	srv := server.New(
 		handler,
@@ -56,7 +60,7 @@ func main() {
 	// Start config watcher for hot reload
 	watcher, err := config.NewWatcher(*configPath, func(newCfg *config.GatewayConfig) {
 		logger.Info("config reloaded, rebuilding router")
-		newHandler := server.BuildRouter(newCfg, logger)
+		newHandler := server.BuildRouter(appCtx, newCfg, logger)
 		srv.SetHandler(newHandler)
 	}, logger)
 	if err != nil {

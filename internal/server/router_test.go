@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -41,7 +42,7 @@ func TestBuildRouter_HealthEndpoint(t *testing.T) {
 
 	cfg := testConfig()
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	handler := BuildRouter(cfg, logger)
+	handler := BuildRouter(context.Background(), cfg, logger)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	rec := httptest.NewRecorder()
@@ -63,7 +64,7 @@ func TestBuildRouter_ReadinessEndpoint(t *testing.T) {
 
 	cfg := testConfig()
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	handler := BuildRouter(cfg, logger)
+	handler := BuildRouter(context.Background(), cfg, logger)
 
 	req := httptest.NewRequest(http.MethodGet, "/ready", nil)
 	rec := httptest.NewRecorder()
@@ -85,7 +86,7 @@ func TestBuildRouter_MetricsEndpoint(t *testing.T) {
 
 	cfg := testConfig()
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	handler := BuildRouter(cfg, logger)
+	handler := BuildRouter(context.Background(), cfg, logger)
 
 	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
 	rec := httptest.NewRecorder()
@@ -158,7 +159,7 @@ func TestBuildRouter_WithRateLimit(t *testing.T) {
 
 	cfg := testConfigWithRateLimit()
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	handler := BuildRouter(cfg, logger)
+	handler := BuildRouter(context.Background(), cfg, logger)
 
 	// Route should be registered — sending a request should not panic
 	// The upstream is unreachable, but the middleware chain should work
@@ -178,7 +179,7 @@ func TestBuildRouter_WithCircuitBreaker(t *testing.T) {
 
 	cfg := testConfigWithCircuitBreaker()
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	handler := BuildRouter(cfg, logger)
+	handler := BuildRouter(context.Background(), cfg, logger)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/breaker", nil)
 	req.RemoteAddr = "10.0.0.1:5555"

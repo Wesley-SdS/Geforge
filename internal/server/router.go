@@ -18,7 +18,8 @@ import (
 )
 
 // BuildRouter creates the HTTP handler with all routes and middleware wired.
-func BuildRouter(cfg *config.GatewayConfig, logger *slog.Logger) http.Handler {
+// The provided context controls the lifecycle of background goroutines (health checkers).
+func BuildRouter(ctx context.Context, cfg *config.GatewayConfig, logger *slog.Logger) http.Handler {
 	mux := http.NewServeMux()
 
 	// System endpoints
@@ -39,7 +40,7 @@ func BuildRouter(cfg *config.GatewayConfig, logger *slog.Logger) http.Handler {
 		// 2. Create health checker and start in background
 		hc := balancer.NewHealthChecker(bal, logger)
 		go func() {
-			if err := hc.Start(context.Background()); err != nil {
+			if err := hc.Start(ctx); err != nil && ctx.Err() == nil {
 				logger.Error("health checker stopped", slog.String("route", rc.Path), slog.String("error", err.Error()))
 			}
 		}()
@@ -52,7 +53,7 @@ func BuildRouter(cfg *config.GatewayConfig, logger *slog.Logger) http.Handler {
 			middleware.Recovery(logger),
 			middleware.RequestID(),
 			middleware.Logging(logger),
-			middleware.Metrics(),
+			middleware.Metrics(rc.Path),
 			middleware.CORS(cfg.CORS),
 		}
 
