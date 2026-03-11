@@ -9,14 +9,15 @@ import (
 )
 
 // Metrics returns middleware that records Prometheus metrics.
-func Metrics() Middleware {
+// Uses the configured routePath as label to prevent cardinality explosion
+// from user-provided paths (e.g. /api/users/123, /api/users/456).
+func Metrics(routePath string) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			path := r.URL.Path
 			method := r.Method
 
-			observability.HTTPActiveRequests.WithLabelValues(method, path).Inc()
-			defer observability.HTTPActiveRequests.WithLabelValues(method, path).Dec()
+			observability.HTTPActiveRequests.WithLabelValues(method, routePath).Inc()
+			defer observability.HTTPActiveRequests.WithLabelValues(method, routePath).Dec()
 
 			start := time.Now()
 			rw := newResponseWriter(w)
@@ -24,8 +25,8 @@ func Metrics() Middleware {
 			duration := time.Since(start).Seconds()
 
 			statusCode := fmt.Sprintf("%d", rw.statusCode)
-			observability.HTTPRequestsTotal.WithLabelValues(method, path, statusCode).Inc()
-			observability.HTTPRequestDuration.WithLabelValues(method, path).Observe(duration)
+			observability.HTTPRequestsTotal.WithLabelValues(method, routePath, statusCode).Inc()
+			observability.HTTPRequestDuration.WithLabelValues(method, routePath).Observe(duration)
 		})
 	}
 }

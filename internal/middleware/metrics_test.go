@@ -9,7 +9,7 @@ import (
 func TestMetrics_RecordsRequest(t *testing.T) {
 	t.Parallel()
 
-	handler := Metrics()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := Metrics("/test")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
