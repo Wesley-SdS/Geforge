@@ -3,6 +3,7 @@ package balancer
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/url"
 	"time"
 
@@ -47,6 +48,11 @@ func NewFromConfig(routeCfg config.RouteConfig) Balancer {
 	for _, t := range routeCfg.Targets {
 		u, err := url.Parse(t.URL)
 		if err != nil {
+			slog.Warn("skipping target with invalid URL",
+				slog.String("route", routeCfg.Path),
+				slog.String("url", t.URL),
+				slog.String("error", err.Error()),
+			)
 			continue
 		}
 		weight := t.Weight
