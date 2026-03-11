@@ -1,0 +1,47 @@
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - goconst
+    - gocyclo
+    - gofmt
+    - goimports
+    - misspell
+    - unparam
+    - bodyclose
+    - gocritic
+    - gosec
+    - nestif
+    - prealloc
+    - revive
+    - tparallel
+
+linters-settings:
+  gocyclo:
+    min-complexity: 10
+  nestif:
+    min-complexity: 4
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - performance
+      - style
+  revive:
+    rules:
+      - name: exported
+        severity: warning
+
+run:
+  timeout: 5m
+  tests: true
+
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 5
