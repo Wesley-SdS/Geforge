@@ -1,0 +1,4 @@
+routes:
+  - path: /api/test
+    targets:
+      - url: http://localhost:3001

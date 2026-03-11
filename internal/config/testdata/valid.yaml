@@ -1,0 +1,32 @@
+server:
+  port: 8080
+  read_timeout: 30s
+  write_timeout: 30s
+
+logging:
+  level: info
+  format: json
+
+metrics:
+  enabled: true
+  path: /metrics
+
+routes:
+  - path: /api/users
+    balance_strategy: round-robin
+    timeout: 10s
+    targets:
+      - url: http://localhost:3001
+        weight: 1
+      - url: http://localhost:3002
+        weight: 1
+    rate_limit:
+      requests_per_second: 100
+      burst: 20
+    circuit_breaker:
+      failure_threshold: 5
+      reset_timeout: 30s
+
+  - path: /api/orders
+    targets:
+      - url: http://localhost:4001

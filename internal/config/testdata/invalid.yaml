@@ -1,0 +1,3 @@
+server:
+  port: 99999
+routes: []
