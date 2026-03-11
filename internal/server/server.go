@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -12,6 +13,7 @@ import (
 type Server struct {
 	httpServer *http.Server
 	logger     *slog.Logger
+	mu         sync.RWMutex
 }
 
 // New creates a new Server.
@@ -46,6 +48,9 @@ func (s *Server) Shutdown(ctx context.Context) error {
 }
 
 // SetHandler replaces the server's handler (used for hot reload).
+// Thread-safe for concurrent access during config hot reload.
 func (s *Server) SetHandler(handler http.Handler) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.httpServer.Handler = handler
 }
